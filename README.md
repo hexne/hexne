@@ -12,11 +12,9 @@
 
 Gitee's strange rules force me to be active on Github
 
-![GitHub账户信息统计](https://github-stats.ubrong.com/api?username=ne-gh&show_icons=true)
+![GitHub账户信息统计](https://github-stats.ubrong.com/api?username=Ne-GH&show_icons=true)
 
-**b站统计**
-
-![B站统计](https://stats.justsong.cn/api/bilibili/?id=357695126)
+![GitHub账户信息统计](https://github-stats.ubrong.com/api?username=Ne-GH&show_icons=true&theme=tokyonight)
 
 **本页访问次数/Visitor Count**
 
