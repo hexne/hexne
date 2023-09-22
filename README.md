@@ -25,6 +25,5 @@ Ne-GH/Ne-GH is a ✨ special ✨ repository because its `README.md` (this file) 
 You can click the Preview link to take a look at your changes.
 --->
 
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
-<span id="busuanzi_value_page_pv">本文总阅读量<i class="fa fa-spinner fa-spin"></i>次</span>
+[![Page Views Count](https://badges.toozhao.com/badges/01HAYRJXD6AP6P8JYY4MBHZ5A6/green.svg)](https://badges.toozhao.com/stats/01HAYRJXD6AP6P8JYY4MBHZ5A6 "Get your own page views count badge on badges.toozhao.com")
 
