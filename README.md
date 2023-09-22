@@ -17,12 +17,6 @@ Gitee's strange rules force me to be active on Github
 ![GitHub账户最常用语言](https://github-stats.ubrong.com/api/top-langs/?username=Ne-GH&layout=compact) 
 
 
-**本页访问次数/Visitor Count**
-
-
-<span id="busuanzi_container_page_pv">本文总阅读量<span id="busuanzi_value_page_pv"></span>次</span>
-
-
-
+**本页访问次数/Visitor Count**  
 [![Page Views Count](https://badges.toozhao.com/badges/01HAYRJXD6AP6P8JYY4MBHZ5A6/green.svg)](https://badges.toozhao.com/stats/01HAYRJXD6AP6P8JYY4MBHZ5A6 "Get your own page views count badge on badges.toozhao.com")
 
