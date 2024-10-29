@@ -7,7 +7,7 @@
 </picture> 
 
 # 简述
-![账户信息统计](https://github-stats.ubrong.com/api?username=Ne-GH&show_icons=true)
+[![账户统计](https://github-readme-stats.vercel.app/api?username=ne-gh)](https://github.com/anuraghazra/github-readme-stats)
 
 ![常用语言](https://github-stats.ubrong.com/api/top-langs/?username=Ne-GH&layout=compact) 
 
