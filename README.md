@@ -9,8 +9,8 @@
 # 简述
 [![账户统计](https://github-readme-stats.vercel.app/api?username=ne-gh)](https://github.com/anuraghazra/github-readme-stats)
 
-![常用语言](https://github-stats.ubrong.com/api/top-langs/?username=Ne-GH&layout=compact) 
 
+![常用语言](https://github-stats.ubrong.com/api?username=ne-gh&show_icons=true&theme=tokyonight)
 
 **本页访问次数/Visitor Count**  
 [![Page Views Count](https://badges.toozhao.com/badges/01HAYRJXD6AP6P8JYY4MBHZ5A6/green.svg)](https://badges.toozhao.com/stats/01HAYRJXD6AP6P8JYY4MBHZ5A6 "Get your own page views count badge on badges.toozhao.com")
