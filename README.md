@@ -7,10 +7,10 @@
 </picture> 
 
 # 简述
-[![账户统计](https://github-readme-stats.vercel.app/api?username=ne-gh)](https://github.com/anuraghazra/github-readme-stats)
+[![账户统计](https://github-readme-stats.vercel.app/api?username=hexne)](https://github.com/anuraghazra/github-readme-stats)
 
 
-[![常用语言](https://github-readme-stats.vercel.app/api/top-langs/?username=ne-gh)](https://github.com/anuraghazra/github-readme-stats)
+[![常用语言](https://github-readme-stats.vercel.app/api/top-langs/?username=hexne)](https://github.com/anuraghazra/github-readme-stats)
 
 **本页访问次数/Visitor Count**  
 [![Page Views Count](https://badges.toozhao.com/badges/01HAYRJXD6AP6P8JYY4MBHZ5A6/green.svg)](https://badges.toozhao.com/stats/01HAYRJXD6AP6P8JYY4MBHZ5A6 "Get your own page views count badge on badges.toozhao.com")
