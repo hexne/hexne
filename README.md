@@ -7,11 +7,17 @@
 </picture> 
 
 # 简述
-[![账户统计](https://github-readme-stats.vercel.app/api?username=hexne)](https://github.com/anuraghazra/github-readme-stats)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hexne/hexne/stats-output/github-stats-dark.svg" />
+  <img alt="账户统计" src="https://raw.githubusercontent.com/hexne/hexne/stats-output/github-stats.svg" />
+</picture>
 
 
-[![常用语言](https://github-readme-stats.vercel.app/api/top-langs/?username=hexne&layout=compact)](https://github.com/anuraghazra/github-readme-stats)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hexne/hexne/stats-output/github-top-langs-dark.svg" />
+  <img alt="常用语言" src="https://raw.githubusercontent.com/hexne/hexne/stats-output/github-top-langs.svg" />
+</picture>
+
 
 **本页访问次数/Visitor Count**  
-[![Page Views Count](https://badges.toozhao.com/badges/01HAYRJXD6AP6P8JYY4MBHZ5A6/green.svg)](https://badges.toozhao.com/stats/01HAYRJXD6AP6P8JYY4MBHZ5A6 "Get your own page views count badge on badges.toozhao.com")
-
+[![Page Views Count](https://komarev.com/ghpvc/?username=hexne&label=Page+Views&color=green&style=flat)](https://github.com/hexne)

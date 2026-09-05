@@ -1,0 +1,66 @@
+name: generate stats
+
+on:
+
+  # run automatically every day at 02:00 UTC
+
+  schedule:
+
+    - cron: "0 2 * * *"
+
+  # allows to manually run the job at any time
+
+  workflow_dispatch:
+
+  # run on every push on the master branch
+
+  push:
+
+    branches:
+
+    - master
+
+jobs:
+
+  generate:
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 10
+
+    steps:
+
+      - name: checkout repository
+
+        uses: actions/checkout@v4
+
+      # queries the GitHub GraphQL API and renders stats / languages cards as svg
+
+      - name: generate stats cards
+
+        run: python3 .github/scripts/generate_stats.py
+
+        env:
+
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          GITHUB_USER: ${{ github.repository_owner }}
+
+          OUT_DIR: dist
+
+      # push the svg files to their own branch so they never clash with the
+      # files the snake workflow publishes on the "output" branch
+
+      - name: push stats cards to the stats-output branch
+
+        uses: crazy-max/ghaction-github-pages@v3.1.0
+
+        with:
+
+          target_branch: stats-output
+
+          build_dir: dist
+
+        env:
+
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
