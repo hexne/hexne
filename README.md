@@ -8,14 +8,14 @@
 
 # 简述
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hexne/hexne/stats-output/github-stats-dark.svg" />
-  <img alt="账户统计" src="https://raw.githubusercontent.com/hexne/hexne/stats-output/github-stats.svg" />
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hexne/hexne/stats-output/github-stats-dark.svg?v=2" />
+  <img alt="账户统计" src="https://raw.githubusercontent.com/hexne/hexne/stats-output/github-stats.svg?v=2" />
 </picture>
 
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hexne/hexne/stats-output/github-top-langs-dark.svg" />
-  <img alt="常用语言" src="https://raw.githubusercontent.com/hexne/hexne/stats-output/github-top-langs.svg" />
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hexne/hexne/stats-output/github-top-langs-dark.svg?v=2" />
+  <img alt="常用语言" src="https://raw.githubusercontent.com/hexne/hexne/stats-output/github-top-langs.svg?v=2" />
 </picture>
 
 
