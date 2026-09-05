@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate GitHub profile stats cards as SVG files.
 
-Queries the GitHub GraphQL API (works with the workflow's GITHUB_TOKEN,
+Queries the GitHub REST API v3 (works with the workflow's GITHUB_TOKEN,
 which only needs read access to public data) and renders two cards,
 each in a light and a dark variant:
 
@@ -11,40 +11,18 @@ each in a light and a dark variant:
 Usage: python3 generate_stats.py [--dry]
   --dry renders sample data without any network access (for local preview).
 """
+import datetime
 import json
 import os
+import re
 import sys
+import time
 import urllib.request
 
+API = "https://api.github.com"
 LOGIN = os.environ.get("GITHUB_USER", "hexne")
 OUT_DIR = os.environ.get("OUT_DIR", "dist")
 DRY = "--dry" in sys.argv
-
-QUERY = """
-query($login: String!) {
-  user(login: $login) {
-    login
-    name
-    followers { totalCount }
-    repositories(ownerAffiliations: [OWNER], first: 100, isFork: false) {
-      nodes {
-        stargazerCount
-        languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
-          edges { size node { name color } }
-        }
-      }
-    }
-    repositoriesContributedTo(first: 1, contributionTypes: [COMMIT, PULL_REQUEST, ISSUE, REPOSITORY]) {
-      totalCount
-    }
-    contributionsCollection {
-      totalCommitContributions
-      totalPullRequestContributions
-      totalIssueContributions
-    }
-  }
-}
-"""
 
 FONT = "Segoe UI, Ubuntu, Sans-Serif"
 THEMES = {
@@ -68,43 +46,100 @@ def fmt(n):
     return f"{n:,}"
 
 
-def fetch_stats():
+def api(path):
     token = os.environ.get("GITHUB_TOKEN", "")
-    if not token:
-        sys.exit("error: GITHUB_TOKEN is not set (or use --dry)")
-    body = json.dumps({"query": QUERY, "variables": {"login": LOGIN}}).encode()
-    req = urllib.request.Request(
-        GRAPHQL_URL, data=body,
-        headers={
-            "Authorization": f"bearer {token}",
-            "Content-Type": "application/json",
-            "User-Agent": "profile-stats-action",
-        })
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        payload = json.load(resp)
-    if payload.get("errors"):
-        sys.exit(f"error: GraphQL query failed: {payload['errors']}")
-    u = payload["data"]["user"]
-    stars = sum(r["stargazerCount"] for r in u["repositories"]["nodes"])
-    langs = {}
-    for repo in u["repositories"]["nodes"]:
-        for edge in repo["languages"]["edges"]:
-            name = edge["node"]["name"]
-            size, color = edge["size"], edge["node"]["color"]
-            entry = langs.setdefault(name, [0, color or "#8b949e"])
+    headers = {"User-Agent": "profile-stats-action"}
+    if token:
+        headers["Authorization"] = f"bearer {token}"
+    url = path if path.startswith("http") else API + path
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(
+                    urllib.request.Request(url, headers=headers),
+                    timeout=30) as resp:
+                return json.load(resp), resp.headers
+        except urllib.error.HTTPError as e:
+            if e.code in (403, 429) and attempt < 2:
+                wait = int(e.headers.get("X-RateLimit-Reset",
+                                         time.time() + 5))
+                time.sleep(max(2, min(wait - time.time(), 30)))
+                continue
+            sys.exit(f"error: GET {url} -> HTTP {e.code}: {e.read()[:200]}")
+        except urllib.error.URLError as e:
+            if attempt < 2:
+                time.sleep(3)
+                continue
+            sys.exit(f"error: GET {url} failed: {e}")
+    sys.exit(f"error: GET {url} failed after retries")
+
+
+def paginate(path):
+    url, items = API + path, []
+    while url:
+        page, headers = api(url)
+        items.extend(page)
+        m = re.search(r'<([^>]+)>; rel="next"', headers.get("Link", ""))
+        url = m.group(1) if m else None
+    return items
+
+
+def commit_count(repo_full_name, since):
+    """Commit count since `since` via the Link header of a 1-item page."""
+    url = (f"{API}/repos/{repo_full_name}/commits"
+           f"?per_page=1&since={since}")
+    _, headers = api(url)
+    m = re.search(r'page=(\d+)>; rel="last"', headers.get("Link", ""))
+    if m:
+        return int(m.group(1))
+    items, _ = api(url)
+    return len(items)
+
+
+def fetch_stats():
+    user, _ = api(f"/users/{LOGIN}")
+
+    since = (datetime.datetime.now(
+        datetime.timezone.utc) - datetime.timedelta(days=365)).strftime(
+        "%Y-%m-%dT%H:%M:%SZ")
+    repos = paginate(f"/users/{LOGIN}/repos?per_page=100")
+
+    stars, langs = 0, {}
+    for repo in repos:
+        stars += repo["stargazers_count"]
+        by_lang, _ = api(repo["languages_url"])
+        for name, size in by_lang.items():
+            entry = langs.setdefault(name, [0, LANG_COLORS.get(name,
+                                                             "#8b949e")])
             entry[0] += size
-    cc = u["contributionsCollection"]
+
+    commits = sum(commit_count(r["full_name"], since) for r in repos)
+    prs, _ = api(f"/search/issues?q=author:{LOGIN}+type:pr&per_page=1")
+    issues, _ = api(f"/search/issues?q=author:{LOGIN}+type:issue&per_page=1")
+
     return {
-        "login": u["login"],
-        "name": u["name"] or u["login"],
-        "followers": u["followers"]["totalCount"],
+        "login": user["login"],
+        "name": user["name"] or user["login"],
+        "followers": user["followers"],
         "stars": stars,
-        "commits": cc["totalCommitContributions"],
-        "prs": cc["totalPullRequestContributions"],
-        "issues": cc["totalIssueContributions"],
-        "contributed": u["repositoriesContributedTo"]["totalCount"],
+        "commits": commits,
+        "prs": prs["total_count"],
+        "issues": issues["total_count"],
         "langs": sorted(langs.items(), key=lambda kv: -kv[1][0]),
     }
+
+
+LANG_COLORS = {
+    "Python": "#3572A5", "JavaScript": "#f1e05a", "TypeScript": "#3178c6",
+    "Go": "#00ADD8", "C": "#555555", "C++": "#f34b7d", "C#": "#178600",
+    "Java": "#b07219", "Rust": "#dea584", "Shell": "#89e051",
+    "HTML": "#e34c26", "CSS": "#563d7c", "Vue": "#41b883",
+    "PHP": "#4F5D95", "Ruby": "#701516", "Kotlin": "#A97BFF",
+    "Swift": "#F05138", "Dart": "#00B4AB", "Lua": "#000080",
+    "PowerShell": "#012456", "Dockerfile": "#384d54", "Makefile": "#427819",
+    "Jupyter Notebook": "#DA5B0B", "Assembly": "#6E4C13",
+    "Batchfile": "#C1F12E", "R": "#198CE7", "MATLAB": "#e16737",
+    "Nix": "#7e7eff", "Zig": "#ec915c", "Scala": "#c22d40",
+}
 
 
 def dry_stats():
@@ -112,7 +147,7 @@ def dry_stats():
         "login": LOGIN,
         "name": "永恒之蓝。",
         "followers": 3, "stars": 128, "commits": 486,
-        "prs": 23, "issues": 11, "contributed": 6,
+        "prs": 23, "issues": 11,
         "langs": [("Python", [45000, "#3572A5"]),
                   ("JavaScript", [25000, "#f1e05a"]),
                   ("Go", [12000, "#00ADD8"]),
@@ -135,7 +170,6 @@ def stats_svg(data, theme):
         ("📕", "Total Commits (1y)", data["commits"]),
         ("🔀", "Total PRs", data["prs"]),
         ("📦", "Total Issues", data["issues"]),
-        ("📊", "Contributed to", data["contributed"]),
         ("👥", "Followers", data["followers"]),
     ]
     w, row_h, top = 500, 30, 78
