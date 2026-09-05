@@ -28,12 +28,49 @@ FONT = "Segoe UI, Ubuntu, Sans-Serif"
 THEMES = {
     "light": {
         "bg": "#fefefe", "stroke": "#e4e2e2", "title": "#2f80ed",
-        "label": "#333333", "value": "#333333",
+        "label": "#333333", "value": "#333333", "icon": "#2f80ed",
     },
     "dark": {
         "bg": "#0d1117", "stroke": "#30363d", "title": "#ffffff",
-        "label": "#8b949e", "value": "#ffffff",
+        "label": "#8b949e", "value": "#ffffff", "icon": "#79c0ff",
     },
+}
+
+# fallback palette for languages without a known official color
+PALETTE = ["#56d364", "#79c0ff", "#a371f7", "#ffa657", "#39c5cf", "#f778ba"]
+
+LANG_COLORS = {
+    "Python": "#3572A5", "JavaScript": "#f1e05a", "TypeScript": "#3178c6",
+    "Go": "#00ADD8", "C": "#555555", "C++": "#f34b7d", "C#": "#178600",
+    "Java": "#b07219", "Rust": "#dea584", "Shell": "#89e051",
+    "HTML": "#e34c26", "CSS": "#563d7c", "Vue": "#41b883",
+    "PHP": "#4F5D95", "Ruby": "#701516", "Kotlin": "#A97BFF",
+    "Swift": "#F05138", "Dart": "#00B4AB", "Lua": "#000080",
+    "PowerShell": "#012456", "Dockerfile": "#384d54", "Makefile": "#427819",
+    "Jupyter Notebook": "#DA5B0B", "Assembly": "#6E4C13",
+    "Batchfile": "#C1F12E", "R": "#198CE7", "MATLAB": "#e16737",
+    "Nix": "#7e7eff", "Zig": "#ec915c", "Scala": "#c22d40",
+    "Vim Script": "#199f4b", "Vim script": "#199f4b",
+}
+
+# feather-style 24x24 stroke icons (https://feathericons.com, MIT)
+ICONS = {
+    "star": ['<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 '
+             '18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>'],
+    "commit": ['<circle cx="12" cy="12" r="4"/>',
+               '<line x1="1.05" y1="12" x2="7" y2="12"/>',
+               '<line x1="17.01" y1="12" x2="22.96" y2="12"/>'],
+    "pr": ['<circle cx="18" cy="18" r="3"/>',
+           '<circle cx="6" cy="6" r="3"/>',
+           '<path d="M13 6h3a2 2 0 0 1 2 2v7"/>',
+           '<line x1="6" y1="9" x2="6" y2="21"/>'],
+    "issue": ['<circle cx="12" cy="12" r="10"/>',
+              '<circle cx="12" cy="12" r="3" fill="currentColor" '
+              'stroke="none"/>'],
+    "users": ['<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>',
+              '<circle cx="9" cy="7" r="4"/>',
+              '<path d="M23 21v-2a4 4 0 0 0-3-3.87"/>',
+              '<path d="M16 3.13a4 4 0 0 1 0 7.75"/>'],
 }
 
 
@@ -44,6 +81,14 @@ def esc(text):
 
 def fmt(n):
     return f"{n:,}"
+
+
+def icon(name, color, size=16):
+    body = "".join(ICONS[name]).replace("currentColor", color)
+    s = size / 24
+    return (f'<g transform="scale({s:.4f})" fill="none" stroke="{color}" '
+            f'stroke-width="2" stroke-linecap="round" '
+            f'stroke-linejoin="round">{body}</g>')
 
 
 def api(path):
@@ -104,12 +149,12 @@ def fetch_stats():
     repos = paginate(f"/users/{LOGIN}/repos?per_page=100")
 
     stars, langs = 0, {}
-    for repo in repos:
+    for i, repo in enumerate(repos):
         stars += repo["stargazers_count"]
         by_lang, _ = api(repo["languages_url"])
         for name, size in by_lang.items():
-            entry = langs.setdefault(name, [0, LANG_COLORS.get(name,
-                                                             "#8b949e")])
+            color = LANG_COLORS.get(name, PALETTE[i % len(PALETTE)])
+            entry = langs.setdefault(name, [0, color])
             entry[0] += size
 
     commits = sum(commit_count(r["full_name"], since) for r in repos)
@@ -126,20 +171,6 @@ def fetch_stats():
         "issues": issues["total_count"],
         "langs": sorted(langs.items(), key=lambda kv: -kv[1][0]),
     }
-
-
-LANG_COLORS = {
-    "Python": "#3572A5", "JavaScript": "#f1e05a", "TypeScript": "#3178c6",
-    "Go": "#00ADD8", "C": "#555555", "C++": "#f34b7d", "C#": "#178600",
-    "Java": "#b07219", "Rust": "#dea584", "Shell": "#89e051",
-    "HTML": "#e34c26", "CSS": "#563d7c", "Vue": "#41b883",
-    "PHP": "#4F5D95", "Ruby": "#701516", "Kotlin": "#A97BFF",
-    "Swift": "#F05138", "Dart": "#00B4AB", "Lua": "#000080",
-    "PowerShell": "#012456", "Dockerfile": "#384d54", "Makefile": "#427819",
-    "Jupyter Notebook": "#DA5B0B", "Assembly": "#6E4C13",
-    "Batchfile": "#C1F12E", "R": "#198CE7", "MATLAB": "#e16737",
-    "Nix": "#7e7eff", "Zig": "#ec915c", "Scala": "#c22d40",
-}
 
 
 def dry_stats():
@@ -166,11 +197,11 @@ def svg_open(w, h, t):
 def stats_svg(data, theme):
     t = THEMES[theme]
     rows = [
-        ("⭐", "Total Stars", data["stars"]),
-        ("📕", "Total Commits (1y)", data["commits"]),
-        ("🔀", "Total PRs", data["prs"]),
-        ("📦", "Total Issues", data["issues"]),
-        ("👥", "Followers", data["followers"]),
+        ("star", "Total Stars", data["stars"]),
+        ("commit", "Total Commits (1y)", data["commits"]),
+        ("pr", "Total PRs", data["prs"]),
+        ("issue", "Total Issues", data["issues"]),
+        ("users", "Followers", data["followers"]),
     ]
     w, row_h, top = 500, 30, 78
     h = top + len(rows) * row_h + 12
@@ -183,10 +214,13 @@ def stats_svg(data, theme):
         f'<text x="30" y="45" font-family="{FONT}" font-size="17" '
         f'font-weight="700" fill="{t["title"]}">{esc(title)}</text>')
     y = top + 10
-    for icon, label, value in rows:
+    for name, label, value in rows:
         parts.append(
-            f'<text x="30" y="{y}" font-family="{FONT}" font-size="14" '
-            f'fill="{t["label"]}">{icon} {esc(label)}</text>')
+            f'<g transform="translate(30, {y - 13})">'
+            f'{icon(name, t["icon"])}</g>')
+        parts.append(
+            f'<text x="52" y="{y}" font-family="{FONT}" font-size="14" '
+            f'fill="{t["label"]}">{esc(label)}</text>')
         parts.append(
             f'<text x="{w - 30}" y="{y}" text-anchor="end" '
             f'font-family="{FONT}" font-size="14" font-weight="700" '
@@ -201,9 +235,12 @@ def langs_svg(data, theme):
     total = sum(size for _, (size, _) in data["langs"])
     entries = [(name, size / total * 100, color)
                for name, (size, color) in data["langs"]
-               if size / total >= 0.01][:6]
-    w, row_h, top = 400, 30, 70
-    h = top + len(entries) * row_h + 8
+               if size / total >= 0.005][:8]
+    w, bar_x, bar_w, bar_h = 440, 30, 380, 10
+    legend_top, item_h = 92, 28
+    cols = 2
+    n_rows = (len(entries) + cols - 1) // cols
+    h = legend_top + n_rows * item_h + 10
     parts = [svg_open(w, h, "Most Used Languages")]
     parts.append(
         f'<rect x="0.5" y="0.5" width="{w - 1}" height="{h - 1}" rx="6" '
@@ -211,17 +248,35 @@ def langs_svg(data, theme):
     parts.append(
         f'<text x="30" y="42" font-family="{FONT}" font-size="16" '
         f'font-weight="700" fill="{t["title"]}">Most Used Languages</text>')
-    y = top + 10
-    for name, pct, color in entries:
-        parts.append(f'<circle cx="34" cy="{y - 5}" r="6" fill="{color}"/>')
+    # stacked horizontal bar, rounded ends via clip
+    parts.append(
+        f'<clipPath id="bar-clip"><rect x="{bar_x}" y="60" '
+        f'width="{bar_w}" height="{bar_h}" rx="5"/></clipPath>')
+    parts.append(f'<g clip-path="url(#bar-clip)">')
+    x = bar_x
+    for i, (name, pct, color) in enumerate(entries):
+        seg_w = bar_w * pct / 100
+        if i == len(entries) - 1:  # absorb rounding into the last segment
+            seg_w = bar_x + bar_w - x
         parts.append(
-            f'<text x="48" y="{y}" font-family="{FONT}" font-size="14" '
-            f'fill="{t["label"]}">{esc(name)}</text>')
+            f'<rect x="{x:.2f}" y="60" width="{seg_w:.2f}" '
+            f'height="{bar_h}" fill="{color}"/>')
+        x += seg_w
+    parts.append("</g>")
+    # two-column legend: "69.40% Python"
+    for i, (name, pct, color) in enumerate(entries):
+        col, row = i % cols, i // cols
+        lx = bar_x + col * (bar_w / cols)
+        ly = legend_top + row * item_h
+        parts.append(f'<circle cx="{lx + 6}" cy="{ly - 5}" r="6" '
+                     f'fill="{color}"/>')
         parts.append(
-            f'<text x="{w - 30}" y="{y}" text-anchor="end" '
-            f'font-family="{FONT}" font-size="14" fill="{t["value"]}">'
+            f'<text x="{lx + 20}" y="{ly}" font-family="{FONT}" '
+            f'font-size="14" font-weight="700" fill="{t["value"]}">'
             f'{pct:.2f}%</text>')
-        y += row_h
+        parts.append(
+            f'<text x="{lx + 82}" y="{ly}" font-family="{FONT}" '
+            f'font-size="14" fill="{t["label"]}">{esc(name)}</text>')
     parts.append("</svg>")
     return "".join(parts)
 
